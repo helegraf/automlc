@@ -1,0 +1,11 @@
+/.gradle/
+
+/build/
+
+/bin/
+
+/doc/
+
+/automeka_ggp.jar
+/.classpath
+/.project
