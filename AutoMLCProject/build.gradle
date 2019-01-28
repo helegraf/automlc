@@ -24,6 +24,8 @@ sourceSets {
 dependencies {
  // Add all the jar dependencies from the lib folder. 
    compile fileTree(dir: 'lib', include: ['*.jar'])
+   compile "de.upb.isys:jaicore-experiments"
+   
 }
 
 group = 'com.github.helegraf'
@@ -60,4 +62,8 @@ publishing {
             }
         }
     }
+}
+
+shadowJar {
+	manifest.attributes 'Main-Class': 'meka.classifiers.multilabel.meta.Main' 
 }

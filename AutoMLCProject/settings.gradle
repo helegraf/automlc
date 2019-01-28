@@ -1,1 +1,3 @@
+includeBuild "../../AILibsDev"
+
 rootProject.name = 'AutoMLCProject'

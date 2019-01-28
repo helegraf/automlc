@@ -137,6 +137,11 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
     
     protected String m_grammarMode = "Full";
     
+    /** Whether results shall be saved */ 
+    protected boolean m_saveResults = true;
+    
+    /** best found algorithm */
+    protected CandidateProgram m_bestAlgorithm;
     
 //    
 //      /** Whether the classifier is run in debug mode. */
@@ -552,7 +557,18 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
         return m_grammarMode;
     }
     
+    /**
+     * Getter for result saving behaviour. 
+     * 
+     * @return whether results are saved at the end, and automatic testing is performed
+     */
+    public boolean getSaveResults() {
+    	return this.m_saveResults;
+    }
     
+    public CandidateProgram getBestAlgorithm() {
+    	return m_bestAlgorithm;
+    }
     
  /*  ########################################################################################################################## 
      ###########################################SETTERS######################################################################## 
@@ -686,7 +702,14 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
         
     }
     
-    
+    /**
+     * Set whether results from the experiments shall be saved or not. Setting this to false suppresses automatic testing after training.
+     * 
+     * @param saveResults whether results shall be saved
+     */
+    public void setSaveResults(boolean saveResults) {
+    	this.m_saveResults = saveResults;
+    }  
     
     
  /*  ########################################################################################################################## 
@@ -883,17 +906,21 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
         usedSeed++;
         learningANDvalidationDataDir = splitDataInAStratifiedWay(usedSeed, this.getFoldInit(), n_labels);
         //It chooses among the best individuals of all generations.
-        CandidateProgram m_bestAlgorithm = this.chooseAmongBestAlgorithms(bestOfTheGenerations, usedSeed, learningANDvalidationDataDir);
+        m_bestAlgorithm = this.chooseAmongBestAlgorithms(bestOfTheGenerations, usedSeed, learningANDvalidationDataDir);
         numbOfEval+=bestOfTheGenerations.size();
         
         //Measuring the elapsed time to run the GGP.
         long endTime = System.currentTimeMillis();
         long differenceTime = endTime - startTime; 
         System.gc();
-        //Saving the results...
-        this.savingMLCResults(m_bestAlgorithm, searchTime, differenceTime, actualGeneration, learningANDvalidationDataDir, numbOfEval);    
-        //And the log of each generation.
-        this.savingLog(strB);
+        
+        if (m_saveResults) {
+        	//Saving the results...
+            this.savingMLCResults(m_bestAlgorithm, searchTime, differenceTime, actualGeneration, learningANDvalidationDataDir, numbOfEval);
+            //And the log of each generation.
+            this.savingLog(strB);
+        } 
+
         System.gc();       
 
             
@@ -945,7 +972,7 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
             
             
             
-            System.exit(1);
+            //System.exit(1);
         
     }
     
@@ -1366,8 +1393,9 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
     * @throws Exception 
     */
    @Override
-   public double[] distributionForInstance(Instance x) throws Exception {                
+   public double[] distributionForInstance(Instance x) throws Exception {
         double p[] = new double[x.classIndex()];
+        System.out.println(this.bestMLCalgorithm);
         p = this.bestMLCalgorithm.distributionForInstance(x);            
         return p;
     }
