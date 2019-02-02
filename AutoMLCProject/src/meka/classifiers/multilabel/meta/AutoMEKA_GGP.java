@@ -26,16 +26,31 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.*;
+import java.util.Vector;
+
+import org.epochx.gr.op.crossover.WhighamCrossover;
+import org.epochx.gr.op.init.GrowInitialiser;
+import org.epochx.gr.op.mutation.WhighamMutation;
+import org.epochx.gr.representation.GRCandidateProgram;
+import org.epochx.representation.CandidateProgram;
+/**
+ * EpochX imports:
+ */
+import org.epochx.tools.grammar.Grammar;
+import org.epochx.tools.random.MersenneTwisterFast;
+
+import com.google.common.eventbus.EventBus;
+
 /**
  * MEKA imports:
  */
 import meka.classifiers.multilabel.AbstractMultiLabelClassifier;
 import meka.classifiers.multilabel.CC;
 import meka.classifiers.multilabel.MultiLabelClassifier;
+import meka.classifiers.multilabel.meta.automekaggp.core.GrammarDefinition;
 import meka.classifiers.multilabel.meta.automekaggp.core.MetaIndividual;
 import meka.classifiers.multilabel.meta.automekaggp.core.Results;
-import meka.classifiers.multilabel.meta.automekaggp.core.GrammarDefinition;
+import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
 import meka.core.MLUtils;
 import meka.core.OptionUtils;
 /**
@@ -44,24 +59,16 @@ import meka.core.OptionUtils;
 import mulan.data.InvalidDataFormatException;
 import mulan.data.IterativeStratification;
 import mulan.data.MultiLabelInstances;
+import weka.classifiers.Classifier;
 /**
  * WEKA imports:
  */
-import weka.core.*;
-import weka.classifiers.*;
-import weka.filters.*;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.Option;
+import weka.core.Utils;
+import weka.filters.Filter;
 import weka.filters.unsupervised.instance.RemoveFolds;
-
-/**
- * EpochX imports:
- */
-import org.epochx.tools.grammar.*;
-import org.epochx.representation.CandidateProgram;
-import org.epochx.tools.random.MersenneTwisterFast;
-import org.epochx.gr.op.crossover.WhighamCrossover;
-import org.epochx.gr.op.init.GrowInitialiser;
-import org.epochx.gr.op.mutation.WhighamMutation;
-import org.epochx.gr.representation.GRCandidateProgram;
 
 
 /**
@@ -143,6 +150,8 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
     /** best found algorithm */
     protected CandidateProgram m_bestAlgorithm;
     
+    protected EventBus eventBus = MetaIndividual.eventBus;
+    
 //    
 //      /** Whether the classifier is run in debug mode. */
 //  protected boolean m_Debug = false;
@@ -160,6 +169,15 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
                 m_testingDirectory = argv[i];
             }
         }
+    }
+    
+    /**
+     * Register the listener object to the event bus of this class. It sends {@link IntermediateSolutionEvent}s.
+     * 
+     * @param listener the object to register
+     */
+    public void registerListener(Object listener) {
+    	eventBus.register(listener);
     }
   
  //  ########################################################################################################################## 
@@ -703,12 +721,13 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
     }
     
     /**
-     * Set whether results from the experiments shall be saved or not. Setting this to false suppresses automatic testing after training.
+     * Set whether results from the experiments shall be saved or not. Setting this to false suppresses automatic testing after training and writes errors to the console instead of files.
      * 
      * @param saveResults whether results shall be saved
      */
     public void setSaveResults(boolean saveResults) {
     	this.m_saveResults = saveResults;
+    	MetaIndividual.writeFiles = saveResults;
     }  
     
     
@@ -919,7 +938,14 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
             this.savingMLCResults(m_bestAlgorithm, searchTime, differenceTime, actualGeneration, learningANDvalidationDataDir, numbOfEval);
             //And the log of each generation.
             this.savingLog(strB);
-        } 
+        } else {
+            //Deleting the training and validation files.
+            File fileT = new File("./Learning-" + this.getFoldInit() + ".arff");
+            fileT.delete();
+            fileT = new File("./Validation-" + this.getFoldInit() + ".arff");
+            fileT.delete();         
+            System.gc();
+        }
 
         System.gc();       
 
@@ -1221,6 +1247,7 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
      * @return a string vector with the directories of the learning and validation sets. 
      */
     public String[] splitDataInAStratifiedWay(long seed, int fold, int n_labels){
+    	String[] learningANDvalidationData = new String[2];
         try {
             String arffDir = this.getTrainingDirectory();        
             MultiLabelInstances dataset = new MultiLabelInstances(arffDir, n_labels);
@@ -1247,12 +1274,18 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
             MultiLabelInstances learningData = new MultiLabelInstances(learningInst, dataset.getLabelsMetaData());
             learningData.getDataSet().setRelationName(dataset.getDataSet().relationName());
             
-            try (FileWriter fLearning = new FileWriter("Learning-"+fold +".arff", false)) {
+            File learningFile = File.createTempFile("Learning-"+fold, ".arff");
+            learningANDvalidationData[0] = learningFile.getAbsolutePath();
+            learningFile.deleteOnExit();
+            try (FileWriter fLearning = new FileWriter(learningFile)) {
                 fLearning.write(learningData.getDataSet().toString());
                 fLearning.close();
             }
             
-            try (FileWriter fValidation = new FileWriter("Validation-"+fold+".arff", false)) {
+            File validationFile = File.createTempFile("Validation-"+fold, ".arff");
+            learningANDvalidationData[1] = validationFile.getAbsolutePath();
+            validationFile.deleteOnExit();
+            try (FileWriter fValidation = new FileWriter(validationFile)) {
                 fValidation.write(validationData.getDataSet().toString());
                 fValidation.close();
             }       
@@ -1262,10 +1295,6 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
         } catch (IOException ex) {
             System.err.println("General exception: "+ex);
         }        
-        
-        String[] learningANDvalidationData = new String[2];
-        learningANDvalidationData[0] = "Learning-"+fold +".arff";
-        learningANDvalidationData[1] = "Validation-"+fold+".arff";
 
         return learningANDvalidationData;
     }
@@ -1406,6 +1435,6 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
      * @param args the arguments of the method.
      */
     public static void main(String args[]) {
-        AbstractMultiLabelClassifier.runClassifier(new AutoMEKA_GGP(args), args);
-    }
+		AbstractMultiLabelClassifier.runClassifier(new AutoMEKA_GGP(args), args);
+	}
 }

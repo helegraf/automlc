@@ -25,10 +25,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.common.eventbus.EventBus;
+
 import sun.tools.jar.CommandLine;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
+import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
 import meka.classifiers.multilabel.meta.gaautomlc.core.xmlparser.Allele;
 import weka.core.Instances;
 import weka.core.Utils;
@@ -40,6 +44,8 @@ import weka.core.Utils;
  * @author alex
  */
 public class MetaIndividual implements Comparable<MetaIndividual>{
+	
+	public static EventBus eventBus = new EventBus();
     
     protected static StringBuffer m_statistics;
     
@@ -168,6 +174,7 @@ public class MetaIndividual implements Comparable<MetaIndividual>{
         this.m_fitness = 0.0;
         
         if(this.m_validationEvaluation == null){
+        	System.err.println("Validation is null!!!!");
             this.m_fitness = 0.0;
             return this.m_fitness;
         }
@@ -431,23 +438,28 @@ public class MetaIndividual implements Comparable<MetaIndividual>{
 //        boolean validOE = false;
         boolean validRL = false;  
 
-        while ((line = in.readLine()) != null) { 
+        IntermediateSolutionEvent event = new IntermediateSolutionEvent(individual.getM_individualInString());
+        while ((line = in.readLine()) != null) {
 //            System.out.println(line);
            if(line.startsWith("Exact-match-test")){
                 outValidEM = Double.parseDouble(line.split("=")[1]);
                 validEM = true;
+                event.setExactMatch(outValidEM);
 //                System.out.println("EM:"+outValidEM);
             }else if(line.startsWith("Hamming-loss-test")){
                 outValidHL = Double.parseDouble(line.split("=")[1]);
                 validHL = true;
+                event.setHammingLoss(outValidHL);
 //                System.out.println("HL:"+outValidHL);
             }else if(line.startsWith("Rank-loss-test")){
                 outValidRL= Double.parseDouble(line.split("=")[1]);
                 validRL = true;
+                event.setRankLoss(outValidRL);
 //                System.out.println("RL:"+outValidRL);
             }else if(line.startsWith("F1-macro-averaged-by-label-test")){
                 outValidF1= Double.parseDouble(line.split("=")[1]);
                 validF1 = true;
+                event.setF1MacroAvgL(outValidF1);
 //                System.out.println("F1:"+outValidF1);
             }        
         }
@@ -463,7 +475,9 @@ public class MetaIndividual implements Comparable<MetaIndividual>{
             fitness = outValidEM + (1.0 - outValidHL) + (1.0 - outValidRL) + outValidF1;
             fitness = fitness/4.0;
 //            System.out.println("Fitness: "+fitness);
-            this.m_validationEvaluation = fitness;        
+            this.m_validationEvaluation = fitness;
+            event.setFitness(fitness);
+            eventBus.post(event);
         }else{
             this.m_validationEvaluation = 0.0;  
         }

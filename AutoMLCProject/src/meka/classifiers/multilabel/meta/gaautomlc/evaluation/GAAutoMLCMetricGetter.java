@@ -1,9 +1,9 @@
-package meka.classifiers.multilabel.meta.automekaggp.evaluation;
+package meka.classifiers.multilabel.meta.gaautomlc.evaluation;
 
 import java.util.Arrays;
 import java.util.List;
 
-import meka.classifiers.multilabel.meta.automekaggp.core.ResultsEval;
+import meka.classifiers.multilabel.meta.gaautomlc.core.ResultsEval;
 
 /**
  * Getter class for easier evaluation and comparison with MEKA evaluations.
@@ -11,25 +11,22 @@ import meka.classifiers.multilabel.meta.automekaggp.core.ResultsEval;
  * @author Helena Graf
  *
  */
-public class AutoMekaGGPMetricGetter {
-
-	private AutoMekaGGPMetricGetter() {
-	}
-
+public class GAAutoMLCMetricGetter {
+	
+	private GAAutoMLCMetricGetter () {}
+	
 	/**
 	 * Available metrics for multilabelclassifiers
 	 */
 	public static final List<String> multiLabelMetrics = Arrays.asList("L_Hamming", "L_LevenshteinDistance",
 			"L_OneError", "L_JaccardDist", "L_RankLoss", "L_ZeroOne", "P_Accuracy", "P_AveragePrecision",
-			"P_ExactMatch", "P_FmacroAvgD", "P_FmicroAvg", "P_Hamming", "P_Harmonic", "P_RecallMicro", "P_RecallMacro",
-			"P_PrecisionMicro", "P_PrecisionMacro", "P_Fitness");
+			"P_ExactMatch", "P_FmacroAvgD", "P_FmicroAvg", "P_Hamming", "P_Harmonic",
+			"P_RecallMicro", "P_RecallMacro", "P_PrecisionMicro", "P_PrecisionMacro", "P_Fitness");
 
-	public static final List<String> unavailableMetrics = Arrays.asList("L_LogLoss", "L_LogLossD", "L_LogLossL",
-			"P_macroAUPRC", "P_marcoAUROC");
+	public static final List<String> unavailableMetrics = Arrays.asList("L_LogLoss", "L_LogLossD", "L_LogLossL", "P_macroAUPRC", "P_marcoAUROC");
 
 	public static final List<String> additionalMetrics = Arrays.asList("LabelCardinalityDifference",
-			"LabelCardinalityPredicted", "EmptyLabelvectorsPredicted", "aurcMacroAveraged",
-			"aurocMacroAveraged_Training");
+			"LabelCardinalityPredicted", "EmptyLabelvectorsPredicted", "aurcMacroAveraged", "aurocMacroAveraged_Training");
 
 	/**
 	 * Get the value of the given metric from the results eval by name.

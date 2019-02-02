@@ -23,11 +23,16 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 /**
  * EpochX imports:
  */
 import org.epochx.gr.representation.GRCandidateProgram;
 import org.epochx.representation.CandidateProgram;
+
+import com.google.common.eventbus.EventBus;
+
+import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
 /**
  * Sun imports:
  */
@@ -40,6 +45,9 @@ import sun.tools.jar.CommandLine;
  * @author alexgcsa
  */
 public class MetaIndividual{
+	
+	public static EventBus eventBus = new EventBus();
+	public static boolean writeFiles = true;
    
     /**
      * Evaluate a set of individuals over a set of datasets
@@ -223,20 +231,25 @@ public class MetaIndividual{
         boolean validRL = false;  
         
         /** It sets the values of the metrics, if possible. **/
+        IntermediateSolutionEvent event = new IntermediateSolutionEvent(individual.toString());
         while ((line = in.readLine()) != null) {
              sf.append(line).append("\n");
            if(line.startsWith("Exact-match-test")){
                 outValidEM = Double.parseDouble(line.split("=")[1]);
                 validEM = true;
+                event.setExactMatch(outValidEM);
             }else if(line.startsWith("Hamming-loss-test")){
                 outValidHL = Double.parseDouble(line.split("=")[1]);
                 validHL = true;
+                event.setHammingLoss(outValidHL);
             }else if(line.startsWith("Rank-loss-test")){
                 outValidRL= Double.parseDouble(line.split("=")[1]);
                 validRL = true;
+                event.setRankLoss(outValidRL);
             }else if(line.startsWith("F1-macro-averaged-by-label-test")){
                 outValidF1= Double.parseDouble(line.split("=")[1]);
                 validF1 = true;
+                event.setF1MacroAvgL(outValidF1);
             }
         }
         
@@ -244,26 +257,43 @@ public class MetaIndividual{
         if(validEM && validHL && validRL && validF1){
             double fitness = outValidEM + (1.0 - outValidHL) + (1.0 - outValidRL) + outValidF1;
             fitness = fitness/4.0;
-            fitnessValue = fitness;        
+            fitnessValue = fitness;  
+            event.setFitness(fitness);
+            eventBus.post(event);
         }else{
            /** Otherwise, a file showing the issue is created or appended**/
            String buffer = sf.toString();
            BufferedWriter bfw = null;
-           new File("./results-"+ experimentName).mkdir();
+           if (writeFiles) {
+        	   new File("./results-"+ experimentName).mkdir();
+           }
+           
            fitnessValue = 0.0;
            if(buffer.isEmpty()){ 
-                /** File for complexity issues, ie, the algorithm did not finish with the given timeout limit. **/
-                bfw = new BufferedWriter(new FileWriter("results-"+ experimentName +"/TimeoutIssues-"+experimentName+"-"+seed+".csv", true));
-                bfw.write("Complexity issues in the algorithm: "+grammarInd + "\n");         
-           }else{   
-                /** File for general issues with the executed algorithm. **/
-                bfw = new BufferedWriter(new FileWriter("results-"+ experimentName +"/GeneralIssues-"+experimentName+"-"+seed+".csv", true));
-                bfw.write("Complexity issues in the algorithm: "+grammarInd + "\n"); 
-                bfw.write(buffer + "\n");
+        	   if (writeFiles) {
+                   /** File for complexity issues, ie, the algorithm did not finish with the given timeout limit. **/
+                   bfw = new BufferedWriter(new FileWriter("results-"+ experimentName +"/TimeoutIssues-"+experimentName+"-"+seed+".csv", true));
+                   bfw.write("Complexity issues in the algorithm: "+grammarInd + "\n");  
+        	   } else {
+        		   System.err.print("Complexity issues in the algorithm: "+grammarInd + "\n");
+        	   }      
+           }else{ 
+        	   if (writeFiles) {
+                   /** File for general issues with the executed algorithm. **/
+                   bfw = new BufferedWriter(new FileWriter("results-"+ experimentName +"/GeneralIssues-"+experimentName+"-"+seed+".csv", true));
+                   bfw.write("Complexity issues in the algorithm: "+grammarInd + "\n"); 
+                   bfw.write(buffer + "\n");
+        	   } else {
+        		   System.err.print("Complexity issues in the algorithm: "+grammarInd + "\n");
+        	   }
+
            }
-           bfw.write("=====================================================\n");
+           if (writeFiles) {
+               bfw.write("=====================================================\n");
+               bfw.close(); 
+           }
            sf = null; 
-           bfw.close(); 
+
         }       
         
         in.close();
@@ -740,6 +770,7 @@ public class MetaIndividual{
             /** return the grammar string for the individual executing this callable task. **/
             return grammarInd;
         }  
+        
     }
     
     

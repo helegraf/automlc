@@ -15,8 +15,12 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
+
+import com.google.common.eventbus.EventBus;
+
 import meka.classifiers.multilabel.AbstractMultiLabelClassifier;
 import meka.classifiers.multilabel.CC;
+import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
 import meka.classifiers.multilabel.meta.gaautomlc.core.MersenneTwisterFast;
 import meka.core.MLUtils;
 import mulan.data.InvalidDataFormatException;
@@ -106,6 +110,13 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
     /** The selected MLC algorithm. */
     protected Classifier bestMLCalgorithm;    
     
+    /** Whether results shall be saved */ 
+    protected boolean m_saveResults = true;
+    
+    protected MetaIndividual bestAlgorithm;
+    
+    protected EventBus eventBus = MetaIndividual.eventBus;
+    
     /** 
     *Constructor 
     */
@@ -123,7 +134,15 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
                 m_testingDirectory = argv[i];
             }
         }      
-
+    }
+    
+    /**
+     * Register the listener object to the event bus of this class. It sends {@link IntermediateSolutionEvent}s.
+     * 
+     * @param listener the object to register
+     */
+    public void registerListener(Object listener) {
+    	eventBus.register(listener);
     }
 
     /**
@@ -417,6 +436,15 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
         return m_seed;
     }
     
+    /**
+     * Set whether results from the experiments shall be saved or not. Setting this to false suppresses automatic testing after training.
+     * 
+     * @param saveResults whether results shall be saved
+     */
+    public void setSaveResults(boolean saveResults) {
+    	this.m_saveResults = saveResults;
+    }  
+    
     public File XMLAlgorithmsFile() {
         return m_XMLAlgorithmsFile;
     }    
@@ -493,8 +521,23 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
         return m_savingDirectory;
     }      
 
-
-
+    /**
+     * Getter for result saving behaviour. 
+     * 
+     * @return whether results are saved at the end, and automatic testing is performed
+     */
+    public boolean getSaveResults() {
+    	return this.m_saveResults;
+    }
+    
+    /**
+     * Get the best found algorithm
+     * 
+     * @return the ebst algorithm found
+     */
+    public MetaIndividual getBestALgorithm() {
+    	return this.bestAlgorithm;
+    }
 
     /**
     * returns a description of the search as a String
@@ -522,7 +565,8 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
     public void buildClassifier(Instances data) throws Exception { 
         train(data);
         
-        System.exit(1);
+        // DO NOT EXIT
+        //System.exit(1);
     }
     
     
@@ -753,11 +797,19 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
         long differenceTime = endTime - startTime; 
         System.gc();
         
-        //Saving the results...
-        this.savingMLCResults(m_bestAlgorithm, searchTime, differenceTime, actualGeneration, learningANDvalidationDataDir, numbOfEval);    
-        //And the log of each generation.
-        this.savingLog(strB);
-
+        if (m_saveResults) {
+            //Saving the results...
+            this.savingMLCResults(m_bestAlgorithm, searchTime, differenceTime, actualGeneration, learningANDvalidationDataDir, numbOfEval);    
+            //And the log of each generation.
+            this.savingLog(strB);
+        } else {
+            //Deleting the training and validation files.
+            File fileT = new File("./Learning-" + this.getFoldInit() + ".arff");
+            fileT.delete();
+            fileT = new File("./Validation-" + this.getFoldInit() + ".arff");
+            fileT.delete();         
+            System.gc();
+        }
     }
     
     public MetaIndividual chooseAmongBestAlgorithms(ArrayList<MetaIndividual> bestOfTheGenerations, long usedSeed, String [] learningANDvalidationDataDir) throws Exception{
@@ -771,7 +823,7 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
             System.out.println(me.getM_individualInString() +"=>"+ me.setEvaluation());   
         } 
         //The best algorithm generated during training is defined.
-        MetaIndividual bestAlgorithm = bestOfTheGenerations.get(bestOfTheGenerations.size() - 1);
+        bestAlgorithm = bestOfTheGenerations.get(bestOfTheGenerations.size() - 1);
         
         return bestAlgorithm;
     }  
@@ -1004,6 +1056,7 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
      * @return a string vector with the directories of the learning and validation sets. 
      */
     public String[] splitDataInAStratifiedWay(long seed, int fold, int n_labels){
+    	String[] learningANDvalidationData = new String[2];
         try {
             String arffDir = this.getTrainingDirectory();        
             MultiLabelInstances dataset = new MultiLabelInstances(arffDir, n_labels);
@@ -1030,12 +1083,18 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
             MultiLabelInstances learningData = new MultiLabelInstances(learningInst, dataset.getLabelsMetaData());
             learningData.getDataSet().setRelationName(dataset.getDataSet().relationName());
             
-            try (FileWriter fLearning = new FileWriter("Learning-"+fold +".arff", false)) {
+            File learningFile = File.createTempFile("Learning-"+fold, ".arff");
+            learningFile.deleteOnExit();
+            learningANDvalidationData[0] = learningFile.getAbsolutePath();
+            try (FileWriter fLearning = new FileWriter(learningFile)) {
                 fLearning.write(learningData.getDataSet().toString());
                 fLearning.close();
             }
             
-            try (FileWriter fValidation = new FileWriter("Validation-"+fold+".arff", false)) {
+            File validationFile = File.createTempFile("Validation-"+fold, ".arff");
+            validationFile.deleteOnExit();
+            learningANDvalidationData[1] = validationFile.getAbsolutePath();
+            try (FileWriter fValidation = new FileWriter(validationFile)) {
                 fValidation.write(validationData.getDataSet().toString());
                 fValidation.close();
             }       
@@ -1045,10 +1104,6 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
         } catch (IOException ex) {
             System.err.println("General exception: "+ex);
         }        
-        
-        String[] learningANDvalidationData = new String[2];
-        learningANDvalidationData[0] = "Learning-"+fold +".arff";
-        learningANDvalidationData[1] = "Validation-"+fold+".arff";
 
         return learningANDvalidationData;
     }
