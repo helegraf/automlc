@@ -11,7 +11,7 @@ import meka.classifiers.multilabel.meta.automekaggp.core.ResultsEval;
 import meka.classifiers.multilabel.meta.automekaggp.evaluation.AutoMekaGGPEvaluator;
 import meka.classifiers.multilabel.meta.automekaggp.evaluation.AutoMekaGGPMetricGetter;
 import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
-import meka.classifiers.multilabel.meta.evaluation.SolutionListener;
+import meka.classifiers.multilabel.meta.evaluation.SolutionPrinter;
 import meka.classifiers.multilabel.meta.gaautomlc.evaluation.GAAutoMLCEvaluator;
 import meka.classifiers.multilabel.meta.gaautomlc.evaluation.GAAutoMLCMetricGetter;
 import meka.core.MLUtils;
@@ -37,7 +37,7 @@ public class Main {
 		AutoMEKA_GGP autoMekaGGP = new AutoMEKA_GGP(
 				new String[] { "-t", tempFile.getAbsolutePath(), "-T", tempFile.getAbsolutePath() });
 		autoMekaGGP.setAnytime(true);
-		autoMekaGGP.registerListener(new SolutionListener());
+		autoMekaGGP.registerListener(new SolutionPrinter());
 		autoMekaGGP.setGeneraltimeLimit(2);
 		autoMekaGGP.setAlgorithmTimeLimit(30);
 		autoMekaGGP.setExperimentName("auto");
@@ -58,7 +58,7 @@ public class Main {
 		
 		// Create and configure 2nd algorithm
 		GAAutoMLC gaAutoMLC = new GAAutoMLC(new String[] { "-t", tempFile.getAbsolutePath(), "-T", tempFile.getAbsolutePath() });
-		gaAutoMLC.registerListener(new SolutionListener());
+		gaAutoMLC.registerListener(new SolutionPrinter());
 		gaAutoMLC.setAnytime(true);
 		gaAutoMLC.setGeneraltimeLimit(2);
 		gaAutoMLC.setTimeoutLimit(30);

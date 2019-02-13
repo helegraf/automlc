@@ -3,12 +3,12 @@ package meka.classifiers.multilabel.meta.evaluation;
 import com.google.common.eventbus.Subscribe;
 
 /**
- * Fot intermediate solution evaluation.
+ * For intermediate solution evaluation.
  * 
  * @author Helena Graf
  *
  */
-public class SolutionListener {
+public class SolutionPrinter {
 
 	/**
 	 * Prints the contents of a received intermediate solution event.

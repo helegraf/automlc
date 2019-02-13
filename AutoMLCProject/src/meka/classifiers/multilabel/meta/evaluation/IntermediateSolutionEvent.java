@@ -16,6 +16,7 @@ public class IntermediateSolutionEvent {
 	private Double rankLoss;
 	private Double f1MacroAvgL;
 	private Double fitness;
+	private long foundAt;
 
 	/**
 	 * Constructs a new intermediate solution event representing an evaluation of
@@ -26,6 +27,17 @@ public class IntermediateSolutionEvent {
 	 */
 	public IntermediateSolutionEvent(String solution) {
 		this.solution = solution;
+		this.foundAt = System.currentTimeMillis();
+	}
+
+	/**
+	 * Get the solution for which the measures this solution event contains were
+	 * made.
+	 * 
+	 * @return the solution as a command-line String that can be executed
+	 */
+	public String getSolution() {
+		return solution;
 	}
 
 	/**
@@ -132,20 +144,20 @@ public class IntermediateSolutionEvent {
 	public void setFitness(Double fitness) {
 		this.fitness = fitness;
 	}
-	
+
 	/**
-	 * Get the solution for which the measures this solution event contains were made.
+	 * Time in Millis when the solution for this event was found.
 	 * 
-	 * @return the solution as a command-line String that can be executed
+	 * @return the time at which the solution was found
 	 */
-	public String getSolution() {
-		return solution;
+	public long getFoundAt() {
+		return foundAt;
 	}
 
 	@Override
 	public String toString() {
-		return "solution: " + solution + "\nexactMatch: " + exactMatch + ", hammingLoss: " + hammingLoss + ", rankLoss: " + rankLoss
-				+ ", f1MarcoAvgL: " + f1MacroAvgL + ", fitness: " + fitness;
+		return "solution: " + solution + "\nexactMatch: " + exactMatch + ", hammingLoss: " + hammingLoss
+				+ ", rankLoss: " + rankLoss + ", f1MarcoAvgL: " + f1MacroAvgL + ", fitness: " + fitness + "\nfound at: " + foundAt;
 	}
 
 }

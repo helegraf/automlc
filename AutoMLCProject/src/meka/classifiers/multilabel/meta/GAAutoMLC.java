@@ -21,6 +21,7 @@ import com.google.common.eventbus.EventBus;
 import meka.classifiers.multilabel.AbstractMultiLabelClassifier;
 import meka.classifiers.multilabel.CC;
 import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
+import meka.classifiers.multilabel.meta.evaluation.StartingGenerationEvent;
 import meka.classifiers.multilabel.meta.gaautomlc.core.MersenneTwisterFast;
 import meka.core.MLUtils;
 import mulan.data.InvalidDataFormatException;
@@ -667,6 +668,8 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
         for (generation = 0; generation <= m_numberOfGenerations; generation++) {
             System.out.println("Generation: " + generation);
             System.out.println("GA-AutoMLC");
+            eventBus.post(new StartingGenerationEvent(generation));
+            
             /**
              * Resampling data every m_resample generations. *
              */

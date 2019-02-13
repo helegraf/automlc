@@ -12,21 +12,24 @@ import meka.classifiers.multilabel.meta.gaautomlc.core.ResultsEval;
  *
  */
 public class GAAutoMLCMetricGetter {
-	
-	private GAAutoMLCMetricGetter () {}
-	
+
+	private GAAutoMLCMetricGetter() {
+	}
+
 	/**
 	 * Available metrics for multilabelclassifiers
 	 */
 	public static final List<String> multiLabelMetrics = Arrays.asList("L_Hamming", "L_LevenshteinDistance",
 			"L_OneError", "L_JaccardDist", "L_RankLoss", "L_ZeroOne", "P_Accuracy", "P_AveragePrecision",
-			"P_ExactMatch", "P_FmacroAvgD", "P_FmicroAvg", "P_Hamming", "P_Harmonic",
-			"P_RecallMicro", "P_RecallMacro", "P_PrecisionMicro", "P_PrecisionMacro", "P_Fitness");
+			"P_ExactMatch", "P_FmacroAvgD", "P_FmacroAvgL", "P_FmicroAvg", "P_Hamming", "P_Harmonic", "P_RecallMicro", "P_RecallMacro",
+			"P_PrecisionMicro", "P_PrecisionMacro", "P_Fitness");
 
-	public static final List<String> unavailableMetrics = Arrays.asList("L_LogLoss", "L_LogLossD", "L_LogLossL", "P_macroAUPRC", "P_marcoAUROC");
+	public static final List<String> unavailableMetrics = Arrays.asList("L_LogLoss", "L_LogLossD", "L_LogLossL",
+			"P_macroAUPRC", "P_marcoAUROC");
 
 	public static final List<String> additionalMetrics = Arrays.asList("LabelCardinalityDifference",
-			"LabelCardinalityPredicted", "EmptyLabelvectorsPredicted", "aurcMacroAveraged", "aurocMacroAveraged_Training");
+			"LabelCardinalityPredicted", "EmptyLabelvectorsPredicted", "aurcMacroAveraged",
+			"aurocMacroAveraged_Training");
 
 	/**
 	 * Get the value of the given metric from the results eval by name.
@@ -74,6 +77,8 @@ public class GAAutoMLCMetricGetter {
 			return results.getMicroRecall_Evaluation();
 		case "P_FmacroAvgD":
 			return results.getF1MacroAveragedExample_Evaluation();
+		case "P_FmacroAvgL":
+			return results.getF1MacroAveragedLabel_Evaluation();
 		case "P_JaccardIndex":
 			return results.getAccuracy_Evaluation();
 		case "P_Fitness":
