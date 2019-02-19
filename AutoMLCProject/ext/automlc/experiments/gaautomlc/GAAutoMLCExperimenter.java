@@ -132,7 +132,7 @@ public class GAAutoMLCExperimenter implements IExperimentSetEvaluator {
 
 	public static void main(final String[] args) {
 		ExperimentRunner runner = new ExperimentRunner(new GAAutoMLCExperimenter());
-		runner.randomlyConductExperiments(false);
+		runner.randomlyConductExperiments(1, false);
 	}
 	
 	public static Instances readFile(String name) throws Exception {
