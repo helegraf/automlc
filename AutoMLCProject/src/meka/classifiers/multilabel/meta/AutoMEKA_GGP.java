@@ -51,6 +51,7 @@ import meka.classifiers.multilabel.meta.automekaggp.core.GrammarDefinition;
 import meka.classifiers.multilabel.meta.automekaggp.core.MetaIndividual;
 import meka.classifiers.multilabel.meta.automekaggp.core.Results;
 import meka.classifiers.multilabel.meta.evaluation.IntermediateSolutionEvent;
+import meka.classifiers.multilabel.meta.evaluation.StartingGenerationEvent;
 import meka.core.MLUtils;
 import meka.core.OptionUtils;
 /**
@@ -825,6 +826,7 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
         for (generation = 0; generation <= this.getNumberGenerations(); generation++) {     
             System.out.println("Generation: "+generation);
             System.out.println("GGP:" + this.getGrammarMode());
+            eventBus.post(new StartingGenerationEvent(generation));
             //Resampling data every m_resample generations. 
             if ((this.getResample() > 0) && (generation % this.getResample() == 0) && (generation > 0)) {
                 learningANDvalidationDataDir = splitDataInAStratifiedWay(usedSeed, this.getFoldInit(), n_labels);
