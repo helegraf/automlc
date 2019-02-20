@@ -8,7 +8,7 @@ import org.aeonbits.owner.Config.Sources;
 import jaicore.ml.experiments.IMultiClassClassificationExperimentConfig;
 
 @LoadPolicy(LoadType.MERGE)
-@Sources({ "file:conf/ml2planAutoExperimenter.properties", "file:conf/ml2planAutodatabase.properties" })
+@Sources({ "file:conf/automlcExperimenter.properties", "file:conf/automlcdatabase.properties" })
 public interface GAAutoMLCExperimenterConfig extends IMultiClassClassificationExperimentConfig {
 
 }
