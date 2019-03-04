@@ -98,6 +98,7 @@ public class GAAutoMLCExperimenter implements IExperimentSetEvaluator {
 //		gaAutoMLC.setTimeoutLimit(60);
 		gaAutoMLC.setExperimentName(String.valueOf(experimentEntry.getId()));
 		gaAutoMLC.setSaveResults(false);
+		gaAutoMLC.setNumberOfThreads(8);
 		gaAutoMLC.setXMLAlgorithmsFile(new File("algorithms.xml"));
 		gaAutoMLC.registerListener(new SolutionUploader(connection, System.currentTimeMillis()));
 		this.evaluateMLClassifier(train, connection, gaAutoMLC);

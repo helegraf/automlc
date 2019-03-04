@@ -100,6 +100,7 @@ public class AutoMekaGGPExperimenter implements IExperimentSetEvaluator {
 		autoMekaGGP.setAlgorithmTimeLimit(Integer.parseInt(experimentDescription.get("node_timeout")) * 60);
 		autoMekaGGP.setExperimentName("auto");
 		autoMekaGGP.setSaveResults(false);
+		autoMekaGGP.setNumberOfThreads(8);
 		this.evaluateMLClassifier(train, connection, autoMekaGGP);
 
 		System.out.println("Done with evaluation. Send job result.");
