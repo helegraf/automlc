@@ -23,7 +23,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 
-		Instances train = readFile("datasets/classification/multi-label/emotion.arff");
+		Instances train = readFile("mulan/" + args[0] + ".arff");
 
 		// Create the file for training (& testing in this case)
 		File tempFile = File.createTempFile("training", ".arff");
@@ -35,14 +35,14 @@ public class Main {
 
 		// Create and configure algorithm
 		AutoMEKA_GGP autoMekaGGP = new AutoMEKA_GGP(
-				new String[] { "-t", tempFile.getAbsolutePath(), "-T", tempFile.getAbsolutePath() });
+				new String[] { "-t", tempFile.getAbsolutePath(), "-T", tempFile.getAbsolutePath() }, "mulan/" + args[0] + ".xml");
 		autoMekaGGP.setAnytime(true);
 		autoMekaGGP.registerListener(new SolutionPrinter());
 		autoMekaGGP.setGeneraltimeLimit(2);
 		autoMekaGGP.setAlgorithmTimeLimit(30);
 		autoMekaGGP.setExperimentName("auto");
 		autoMekaGGP.setSaveResults(false);
-		//autoMekaGGP.setSavingDirectory("/mnt/c/Users/Helena Graf/Desktop");
+		// autoMekaGGP.setSavingDirectory("/mnt/c/Users/Helena Graf/Desktop");
 
 		// Train and test algorithm
 		autoMekaGGP.buildClassifier(train);
@@ -53,26 +53,29 @@ public class Main {
 		AutoMekaGGPMetricGetter.multiLabelMetrics.forEach(metric -> {
 			System.out.println(metric + ": " + AutoMekaGGPMetricGetter.getValueOfMetricForAutoMekaGGP(metric, results));
 		});
-		
+
 		// ------------------------- 2nd algo --------------------------
-		
+
 		// Create and configure 2nd algorithm
-		GAAutoMLC gaAutoMLC = new GAAutoMLC(new String[] { "-t", tempFile.getAbsolutePath(), "-T", tempFile.getAbsolutePath() });
+		GAAutoMLC gaAutoMLC = new GAAutoMLC(
+				new String[] { "-t", tempFile.getAbsolutePath(), "-T", tempFile.getAbsolutePath() }, "mulan/" + args[0] + ".xml");
 		gaAutoMLC.registerListener(new SolutionPrinter());
 		gaAutoMLC.setAnytime(true);
 		gaAutoMLC.setGeneraltimeLimit(2);
 		gaAutoMLC.setTimeoutLimit(30);
 		gaAutoMLC.setExperimentName("ga");
 		gaAutoMLC.setSaveResults(false);
-		gaAutoMLC.setXMLAlgorithmsFile(new File ("algorithms.xml"));
-		//gaAutoMLC.setXMLAlgorithmsFile(new File ("C:/Users/Helena Graf/Desktop/algorithms.xml"));
-		//gaAutoMLC.setSavingDirectory("C:/Users/Helena Graf/Desktop");
-		//gaAutoMLC.setSavingDirectory("/mnt/c/Users/Helena Graf/Desktop");
-		
+		gaAutoMLC.setXMLAlgorithmsFile(new File("algorithms.xml"));
+		// gaAutoMLC.setXMLAlgorithmsFile(new File ("C:/Users/Helena
+		// Graf/Desktop/algorithms.xml"));
+		// gaAutoMLC.setSavingDirectory("C:/Users/Helena Graf/Desktop");
+		// gaAutoMLC.setSavingDirectory("/mnt/c/Users/Helena Graf/Desktop");
+
 		// Train and test algorithm
 		gaAutoMLC.buildClassifier(train);
-		meka.classifiers.multilabel.meta.gaautomlc.core.ResultsEval results2 = GAAutoMLCEvaluator.evaluateClassifier(gaAutoMLC);
-		
+		meka.classifiers.multilabel.meta.gaautomlc.core.ResultsEval results2 = GAAutoMLCEvaluator
+				.evaluateClassifier(gaAutoMLC);
+
 		// Print results
 		System.out.println("Results of AutoMekaGGP");
 		AutoMekaGGPMetricGetter.multiLabelMetrics.forEach(metric -> {

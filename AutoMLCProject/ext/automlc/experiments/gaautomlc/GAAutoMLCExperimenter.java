@@ -62,6 +62,12 @@ public class GAAutoMLCExperimenter implements IExperimentSetEvaluator {
 
 		// Prepare the dataset to be ready for multi-label classification
 		//MLUtils.prepareData(data);
+		
+		StringBuilder xmlPathSB = new StringBuilder();
+		xmlPathSB.append(CONFIG.getDatasetFolder().getAbsolutePath());
+		xmlPathSB.append(File.separator);
+		xmlPathSB.append(experimentDescription.get("dataset"));
+		xmlPathSB.append(".xml");
 
 		// Get train / test splits
 		String splitDescription_traintest = experimentDescription.get("test_split_tech");
@@ -90,7 +96,7 @@ public class GAAutoMLCExperimenter implements IExperimentSetEvaluator {
 		saver.writeBatch();
 
 		GAAutoMLC gaAutoMLC = new GAAutoMLC(
-				new String[] { "-t", trainingTempFile.getAbsolutePath(), "-T", testingTempFile.getAbsolutePath() });
+				new String[] { "-t", trainingTempFile.getAbsolutePath(), "-T", testingTempFile.getAbsolutePath() }, xmlPathSB.toString());
 		gaAutoMLC.setAnytime(true);
 		gaAutoMLC.setGeneraltimeLimit(Integer.parseInt(experimentDescription.get("timeout")));
 		gaAutoMLC.setTimeoutLimit(Integer.parseInt(experimentDescription.get("node_timeout"))*60);

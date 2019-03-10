@@ -65,6 +65,12 @@ public class AutoMekaGGPExperimenter implements IExperimentSetEvaluator {
 
 		// Prepare the dataset to be ready for multi-label classification
 		// MLUtils.prepareData(data);
+		
+		StringBuilder xmlPathSB = new StringBuilder();
+		xmlPathSB.append(CONFIG.getDatasetFolder().getAbsolutePath());
+		xmlPathSB.append(File.separator);
+		xmlPathSB.append(experimentDescription.get("dataset"));
+		xmlPathSB.append(".xml");
 
 		// Get train / test splits
 		String splitDescription_traintest = experimentDescription.get("test_split_tech");
@@ -93,7 +99,7 @@ public class AutoMekaGGPExperimenter implements IExperimentSetEvaluator {
 		saver.writeBatch();
 
 		AutoMEKA_GGP autoMekaGGP = new AutoMEKA_GGP(
-				new String[] { "-t", trainingTempFile.getAbsolutePath(), "-T", testingTempFile.getAbsolutePath() });
+				new String[] { "-t", trainingTempFile.getAbsolutePath(), "-T", testingTempFile.getAbsolutePath() }, xmlPathSB.toString());
 		autoMekaGGP.setAnytime(true);
 		autoMekaGGP.registerListener(new SolutionUploader(connection, System.currentTimeMillis()));
 		autoMekaGGP.setGeneraltimeLimit(Integer.parseInt(experimentDescription.get("timeout")));
@@ -116,8 +122,9 @@ public class AutoMekaGGPExperimenter implements IExperimentSetEvaluator {
 
 	private void evaluateMLClassifier(final Instances train, final ResultsDBConnection connection,
 			AutoMEKA_GGP classifier) throws Exception {
-		System.out.println("Evaluate Classifier...");
+		System.out.println("Build Classifier...");
 		classifier.buildClassifier(train);
+		System.out.println("Done Building Classfier. Evaluate Classifier...");
 		ResultsEval results = AutoMekaGGPEvaluator.evaluateClassifier(classifier);
 		System.out.println("Done evaluating Classifier.");
 

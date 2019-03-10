@@ -125,6 +125,8 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
     /** Testing directory. */
     protected String m_testingDirectory = "testing.arff";
     
+    protected String m_xmlLabelsDefFilePath;
+    
     /** Init of the fold. */
     protected int m_foldInit = 0;    
     
@@ -157,7 +159,7 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
 //      /** Whether the classifier is run in debug mode. */
 //  protected boolean m_Debug = false;
 
-    public AutoMEKA_GGP(String [] argv) {
+    public AutoMEKA_GGP(String [] argv, String xmlLabelsDefFilePath) {
         
         this.bestMLCalgorithm = new CC();
         
@@ -170,6 +172,7 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
                 m_testingDirectory = argv[i];
             }
         }
+        this.m_xmlLabelsDefFilePath = xmlLabelsDefFilePath;
     }
     
     /**
@@ -1252,7 +1255,8 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
     	String[] learningANDvalidationData = new String[2];
         try {
             String arffDir = this.getTrainingDirectory();        
-            MultiLabelInstances dataset = new MultiLabelInstances(arffDir, n_labels);
+            //MultiLabelInstances dataset = new MultiLabelInstances(arffDir, n_labels);
+            MultiLabelInstances dataset = new MultiLabelInstances(arffDir, this.m_xmlLabelsDefFilePath);
             
             IterativeStratification is = new IterativeStratification(seed);
             MultiLabelInstances[] folds = is.stratify(dataset, 5);
@@ -1431,12 +1435,12 @@ public class AutoMEKA_GGP extends AbstractMultiLabelClassifier implements MultiL
         return p;
     }
 
-
-    /**
-     * The main method to run AutoMEKA_GGP.
-     * @param args the arguments of the method.
-     */
-    public static void main(String args[]) {
-		AbstractMultiLabelClassifier.runClassifier(new AutoMEKA_GGP(args), args);
-	}
+//
+//    /**
+//     * The main method to run AutoMEKA_GGP.
+//     * @param args the arguments of the method.
+//     */
+//    public static void main(String args[]) {
+//		AbstractMultiLabelClassifier.runClassifier(new AutoMEKA_GGP(args), args);
+//	}
 }

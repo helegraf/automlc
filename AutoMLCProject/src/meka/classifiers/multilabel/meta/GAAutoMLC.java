@@ -92,6 +92,8 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
     protected String m_trainingDirectory;
     /** Testing directory. */
     protected String m_testingDirectory;    
+    
+    protected String m_xmlLabelsDefFilePath;
 
     /** Timeout limit in seconds for each algorithm. **/
     protected int m_timeoutLimit = 60;
@@ -121,7 +123,7 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
     /** 
     *Constructor 
     */
-    public GAAutoMLC (String [] argv) {
+    public GAAutoMLC (String [] argv, String xmlLabelsDefFilePath) {
         super();
         resetOptions();
         this.bestMLCalgorithm = new CC();        
@@ -134,7 +136,9 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
                 i++;
                 m_testingDirectory = argv[i];
             }
-        }      
+        }
+        
+        this.m_xmlLabelsDefFilePath = xmlLabelsDefFilePath;
     }
     
     /**
@@ -1062,7 +1066,8 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
     	String[] learningANDvalidationData = new String[2];
         try {
             String arffDir = this.getTrainingDirectory();        
-            MultiLabelInstances dataset = new MultiLabelInstances(arffDir, n_labels);
+            //MultiLabelInstances dataset = new MultiLabelInstances(arffDir, n_labels);
+            MultiLabelInstances dataset = new MultiLabelInstances(arffDir, m_xmlLabelsDefFilePath);
             
             IterativeStratification is = new IterativeStratification(seed);
             MultiLabelInstances[] folds = is.stratify(dataset, 5);
@@ -1220,10 +1225,10 @@ public class GAAutoMLC extends AbstractMultiLabelClassifier{
     }
   
  
-    public static void main(String[] argv) {
-        Locale.setDefault(Locale.US);
-        runClassifier(new GAAutoMLC(argv), argv);
-    }
+//    public static void main(String[] argv) {
+//        Locale.setDefault(Locale.US);
+//        runClassifier(new GAAutoMLC(argv), argv);
+//    }
 
     @Override
     public double[] distributionForInstance(Instance x) throws Exception {

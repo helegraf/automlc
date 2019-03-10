@@ -32,7 +32,9 @@ dependencies {
  // Add all the jar dependencies from the lib folder. 
    compile fileTree(dir: 'lib', include: ['*.jar'])
    compile "de.upb.isys:jaicore-experiments"
-   compile "de.upb.isys:jaicore-ml"
+   compile ("de.upb.isys:jaicore-ml") {
+   	exclude group: 'de.upb.isys', module: 'meka'
+   }
    
    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
 	compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.15'
@@ -77,5 +79,5 @@ publishing {
 }
 
 shadowJar {
-	manifest.attributes 'Main-Class': 'automlc.experiments.gaautomlc.GAAutoMLCExperimenter' 
+	manifest.attributes 'Main-Class': 'automlc.experiments.automekaggp.AutoMekaGGPExperimenter' 
 }
