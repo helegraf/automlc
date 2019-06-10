@@ -2,6 +2,7 @@ plugins {
 id 'java-library'
 id 'maven-publish'
 id "com.github.johnrengelman.shadow" version "4.0.3"
+id 'eclipse'
 }
 
 repositories {
@@ -31,8 +32,9 @@ sourceSets {
 dependencies {
  // Add all the jar dependencies from the lib folder. 
    compile fileTree(dir: 'lib', include: ['*.jar'])
-   compile "de.upb.isys:jaicore-experiments"
-   compile ("de.upb.isys:jaicore-ml") {
+
+   compile ("ai.libs:jaicore-experiments:0.1.2")
+   compile ("ai.libs:jaicore-ml:0.1.2") {
    	exclude group: 'de.upb.isys', module: 'meka'
    }
    

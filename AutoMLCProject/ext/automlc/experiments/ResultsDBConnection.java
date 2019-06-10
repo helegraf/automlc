@@ -10,11 +10,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jaicore.basic.SQLAdapter;
+import ai.libs.jaicore.basic.SQLAdapter;
 
 /**
  * Connection for uploading results of AutoMLC experiments.
- * 
+ *
  * @author Helena Graf
  *
  */
@@ -46,8 +46,7 @@ public class ResultsDBConnection {
 	 */
 	private final String metricIdsTableName;
 
-	public ResultsDBConnection(String intermediateMeasurementsTableName, String finalMeasurementsTableName,
-			String metricIdsTableName, int runId, String algorithmName, SQLAdapter adapter) {
+	public ResultsDBConnection(final String intermediateMeasurementsTableName, final String finalMeasurementsTableName, final String metricIdsTableName, final int runId, final String algorithmName, final SQLAdapter adapter) {
 		this.finalMeasurementsTableName = finalMeasurementsTableName;
 		this.metricIdsTableName = metricIdsTableName;
 		this.intermediateMeasurementsTableName = intermediateMeasurementsTableName;
@@ -60,26 +59,25 @@ public class ResultsDBConnection {
 		LOGGER.debug("Add final measurements to db");
 		for (Map.Entry<String, Double> entry : metricsWithValues.entrySet()) {
 			HashMap<String, Object> map = new HashMap<>();
-			map.put("experiment_id", experimentId);
-			map.put("found_by", algorithmName);
-			map.put("metric_id", getLatestIdForMetric(entry.getKey()));
+			map.put("experiment_id", this.experimentId);
+			map.put("found_by", this.algorithmName);
+			map.put("metric_id", this.getLatestIdForMetric(entry.getKey()));
 			map.put("value", entry.getValue());
-			adapter.insertNoNewValues(finalMeasurementsTableName, map);
+			this.adapter.insertNoNewValues(this.finalMeasurementsTableName, map);
 		}
 		LOGGER.debug("Done adding final measurements to db.");
 	}
 
-	public void addIntermediateMeasurement(final String classifier, final double value, final long foundAt, int generation)
-			throws SQLException {
+	public void addIntermediateMeasurement(final String classifier, final double value, final long foundAt, final int generation) throws SQLException {
 		LOGGER.debug("Add intermediate measurement to db");
 		HashMap<String, Object> map = new HashMap<>();
-		map.put("experiment_id", experimentId);
-		map.put("found_by", algorithmName);
+		map.put("experiment_id", this.experimentId);
+		map.put("found_by", this.algorithmName);
 		map.put("found_at", foundAt);
 		map.put("generation", generation);
 		map.put("classifier_string", classifier);
 		map.put("value", value);
-		adapter.insertNoNewValues(intermediateMeasurementsTableName, map);
+		this.adapter.insertNoNewValues(this.intermediateMeasurementsTableName, map);
 		LOGGER.debug("Done adding intermediate measurement to db");
 	}
 
@@ -95,8 +93,7 @@ public class ResultsDBConnection {
 	 */
 	public Integer getLatestIdForMetric(final String metricName) throws SQLException {
 		// Get metric
-		String query = String.format("SELECT %s FROM %s WHERE %s=? ORDER BY %s DESC", "metric_id", metricIdsTableName,
-				"metric_name", "updated_at");
+		String query = String.format("SELECT %s FROM %s WHERE %s=? ORDER BY %s DESC", "metric_id", this.metricIdsTableName, "metric_name", "updated_at");
 		List<String> values = Arrays.asList(metricName);
 		ResultSet resultSet = this.adapter.getResultsOfQuery(query, values);
 
